@@ -1,26 +1,34 @@
 package com.chocolang.android.chocoapp.repository.ui.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.chocolang.android.chocoapp.BR
+import com.chocolang.android.chocoapp.ListAdapter
 import com.chocolang.android.chocoapp.R
+import com.chocolang.android.chocoapp.adapter.UserListAdapter
+import com.chocolang.android.chocoapp.databinding.FragmentEmailBinding
+import com.chocolang.android.chocoapp.repository.result.GitUserResult
+import com.chocolang.android.chocoapp.repository.ui.dialog.LoadingDialog
+import com.chocolang.android.chocoapp.viewmodel.RepositoryViewModel
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [EmailFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class EmailFragment : Fragment() {
-    // TODO: Rename and change types of parameters
+class EmailFragment : BaseListFragment() {
+    private lateinit var binding: FragmentEmailBinding
     private var param1: String? = null
     private var param2: String? = null
+
+    private lateinit var listLayoutmanager: LinearLayoutManager
+    private lateinit var listAdapter: UserListAdapter
+
+    private lateinit var viewModel: RepositoryViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,20 +42,46 @@ class EmailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_email, container, false)
+        /** data binding */
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_email, container, false)
+        binding.lifecycleOwner = this
+
+        /** view binding */
+        //binding = FragmentEmailBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        loadingDialog = LoadingDialog(requireContext())
+
+        viewModel = ViewModelProvider(this).get(RepositoryViewModel::class.java)
+        val resultObserver = Observer<GitUserResult> { result ->
+            listAdapter.addAll(result.items)
+        }
+        val isLoadingObserver = Observer<Boolean> { isLoading ->
+            loadingDialog?.run {
+                if(isLoading) show() else dismiss()
+            }
+        }
+        viewModel.repo = repo
+        viewModel.userItems.observe(viewLifecycleOwner, resultObserver)
+        viewModel.isLoading.observe(viewLifecycleOwner, isLoadingObserver)
+
+        listLayoutmanager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        listAdapter = UserListAdapter()
+        binding.rvEmailList.apply {
+            layoutManager = listLayoutmanager
+            adapter = listAdapter
+        }
+
+        binding.setVariable(BR.repositoryViewModel, viewModel)
+        viewModel.getUserList("temp")
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment EmailFragment.
-         */
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
             EmailFragment().apply {

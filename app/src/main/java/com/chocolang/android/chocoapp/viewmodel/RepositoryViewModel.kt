@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.chocolang.android.chocoapp.repository.ApiClient
 import com.chocolang.android.chocoapp.repository.ChocoHttpClient
 import com.chocolang.android.chocoapp.repository.result.GitRepositoryResult
+import com.chocolang.android.chocoapp.repository.result.GitUserResult
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -15,13 +16,14 @@ class RepositoryViewModel : ViewModel() {
     var repo: ApiClient? = null
     var httpRepo: ChocoHttpClient = ChocoHttpClient()
     var disposable: Disposable? = null
-    var result: MutableLiveData<GitRepositoryResult> = MutableLiveData()
+    var repositoryItems: MutableLiveData<GitRepositoryResult> = MutableLiveData()
+    var userItems: MutableLiveData<GitUserResult> = MutableLiveData()
     var isLoading: MutableLiveData<Boolean> = MutableLiveData()
 
     var page = 0
     var hasNextPage = true
 
-    fun getList(q: String) {
+    fun getRepositoryList(q: String) {
         Log.d("jwlee", "getList ------ page: ${page}")
         isLoading.value = true
         disposable = repo?.run {
@@ -30,7 +32,26 @@ class RepositoryViewModel : ViewModel() {
                 .subscribeOn(Schedulers.io())
                 .subscribe({ response ->
                     page += 1
-                    result.value = response
+                    repositoryItems.value = response
+                    isLoading.value = false
+                }, { throwable ->
+                    isLoading.value = false
+                    throwable.printStackTrace()
+                    stopList()
+                })
+        }
+    }
+
+    fun getUserList(q: String) {
+        isLoading.value = true
+        disposable = repo?.run {
+            apiService.getUsers(q, page)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe({ response ->
+                    Log.d("jwlee", "getUserList ------ page: ${response.toString()}")
+                    page += 1
+                    userItems.value = response
                     isLoading.value = false
                 }, { throwable ->
                     isLoading.value = false
@@ -49,7 +70,7 @@ class RepositoryViewModel : ViewModel() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ response ->
                 page += 1
-                result.value = response
+                repositoryItems.value = response
                 isLoading.value = false
             }, { throwable ->
                 isLoading.value = false
@@ -66,7 +87,7 @@ class RepositoryViewModel : ViewModel() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe({ response ->
-                    result.value = response
+                    repositoryItems.value = response
                     isLoading.value = false
                 }, { throwable ->
                     isLoading.value = false

@@ -35,7 +35,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
-                    android:text="@{String.valueOf(safeUnbox(repositoryViewModel.result.total_count))}"
+                    android:text="@{String.valueOf(safeUnbox(repositoryViewModel.repositoryItems.total_count))}"
                     tools:text="120"/>
             </LinearLayout>
             <androidx.recyclerview.widget.RecyclerView

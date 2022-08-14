@@ -1,8 +1,6 @@
 package com.chocolang.android.chocoapp.repository.ui.fragment
 
-import android.app.Dialog
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -67,7 +65,7 @@ class ListFragment : BaseListFragment() {
             }
         }
         viewModel.repo = repo
-        viewModel.result.observe(viewLifecycleOwner, resultObserver)
+        viewModel.repositoryItems.observe(viewLifecycleOwner, resultObserver)
         viewModel.isLoading.observe(viewLifecycleOwner, isLoadingObserver)
 
         listLayoutManager =
@@ -84,15 +82,15 @@ class ListFragment : BaseListFragment() {
                         listLayoutManager.findLastCompletelyVisibleItemPosition()
 
                     if ((totalItemCount - 1) == lastVisibleItemPosition) {
-                        //viewModel.getList("recycler")
-                        viewModel.getListByHttp("recycler")
+                        viewModel.getRepositoryList("recycler")
+                        //viewModel.getListByHttp("recycler")
                     }
                 }
             })
         }
         binding.setVariable(repositoryViewModel, viewModel)
-        //viewModel.getList()
-        viewModel.getListByHttp("recycler")
+        viewModel.getRepositoryList("recycler")
+        //viewModel.getListByHttp("recycler")
     }
 
     companion object {
